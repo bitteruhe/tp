@@ -1,5 +1,8 @@
 # TP
 Teleport - A bash tool for transitioning from one directory to another.  
+```text
+tp --> tp -/> cd --! dc --x
+```
 ## What it is
 `tp` is just a wrapper for `cd`. It makes use of so called `portals` that point
 to user defined directories.
@@ -33,21 +36,18 @@ require a separate portal, when `~/Documents/code/java/sesame/` already has one.
 
 ## How you use TP
 `tp` was developed with the ambition to create a minimalistic tool that offers
-greate ease of use.
+great ease of use.
 
 ### Setting up a portal
 Before teleporting to a directory is possible, a portal must be created for that
-directory. This is achieved by appending a line to `~/.tp_config`:
+directory:
 ```bash
-# This creates a portal called "local" that points to ~/.local/share
-$ echo "local=HOME/.local/share" | tee ~/.tp_config -a
+# This creates a portal called "local" that points to ~/.local/share by
+# appending it to ~/.tp_config
+$ tp -a local ~/.local/share
 ```
-Of course, you can also edit `~/.tp_config` with your favorite text editor.
-#### The meaning of HOME
-A path, specified in `~/.tp_config`, is indirectly passed to `cd`. To keep the
-`~/.tp_config` easy to read, the special value `HOME` was introduced.
-When `tp` reads a path that starts with `HOME`, the path is parsed relative to the
-user's home directory (`$HOME`).
+Of course, you can also manually add portals by editing `~/.tp_config`
+with your favorite text editor.
 
 ### TP in action
 Let's say that this is your `~/.tp_config` file:
@@ -69,12 +69,10 @@ volumes=/var/lib/docker/volumes
 ```
 You are currently working on a python project and want to switch to your java
 project called `clargs`. Instead of using cd with a (long) relative path or
-inconvenient absolute path, you simply enter this:
+inconvenient absolute path, you simply enter this command:
 ```bash
 $ tp clargs
 clargs --> HOME/Documents/code/java/clargs/src/main/java/org/ruhe
-$ pwd
-~/Documents/code/java/clargs/src/main/java/org/ruhe
 ```
 
 ## Installation
@@ -95,5 +93,5 @@ if [ -f ~/.bash_aliases ]; then
 fi
 ```
 
-After running `tp` for the first time, the two files `~/.tp_config` and `~/.tp_config.defaults` are created. Add your own portals to `~/.tp_config` or
+After running `tp` for the first time, the two files `~/.tp_config` and `~/.tp_config.defaults` are created. Add your own portals to `~/.tp_config` with `tp -a` or
 use the existing portals in `~/.tp_config.defaults`.

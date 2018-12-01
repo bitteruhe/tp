@@ -12,16 +12,16 @@
 # alias tp='source tp'
 #
 # This is important because the cd command is executed in the current shell, not in a subshell
-# Setup portals under $HOME/.tp_config
 #
-# This application does not return exit codes because otherwise it would exit the current shell session. This is because it is designed to be run as source
+# This application does not return exit codes because otherwise it would exit the current shell session.
+# This is because it is designed to be run as source
 #
 # Whether this application was run successfully or not is determined by the arrow output:
 #
 # Arrow  : Meaning
 # ------ : ---------------------------------------------------------------------------------------
 # --> $1 : The application successfully teleported to $1
-# -/> $1 : The portal $1 was neither specified in $HOME/.tp_config nor in $HOME/.tp_config.defaults
+# -/> $1 : The portal $1 was neither specified in ~/.tp_config nor in ~/.tp_config.defaults
 # -x> $1 : The underlying command (cd) returned a non-zero exit code
 
 # Setup required files
@@ -43,7 +43,7 @@ pictures=HOME/Pictures" > $default_
 fi
 
 
-args=$(getopt -l "list,test:,help" -o "lht:" -- "$@")
+args=$(getopt -l "add:,list,test:,help" -o "lht:a:" -- "$@")
 
 eval set -- "$args"
 
@@ -97,28 +97,34 @@ SYNOPSIS
 
 OPTIONS
   -h, --help              prints this help
+  -a, --add PORTAL PATH   adds the new portal PORTAL that points to PATH to the list
+                          of configured portals ($HOME/.tp_config)
   -l, --list              lists all available portals (default and custom, 
-                          specified in \$HOME/.tp_config and \$HOME/.tp_config.defaults)
+                          specified in $HOME/.tp_config and $HOME/.tp_config.defaults)
   -t, --test TEST         displays, whether a portal called TEST is specified
-
 PORTAL
   Specify one of the available portals to change the directory to the corresponding location.
   Available portals are displayed with tp -l
   Before teleporting, it is also possible to check the existance of a portal with tp -t PORTAL.
-  Portals are specified in \$HOME/.tp_config and \$HOME/.tp_config.defaults.
+  Portals are specified in $HOME/.tp_config and $HOME/.tp_config.defaults.
 
 ARROW OUTPUT
   When teleporting, a colored arrow indicates if going through the portal was successful or not:
   \e[32m-->\e[0m : The teleport was successful
   \e[33m-/>\e[0m : An error occurred while trying to teleport
   \e[31m--x\e[0m : The portal is not specified
+  
+  A new portal is only added to the list of portals, if there is no existing portal of that name.
+  Whether the portal was successfully added or not is indicated by the following output:
+  \e[32m-->\e[0m : The portal was successfully added
+  \e[31m--!\e[0m : The portal is already configured
 
 SETUP
   Manual:  
     Move this script to /usr/bin/ or /bin/.
     Of course, it makes no sense to run this helper program in a subshell.
     Therefore it is recommended to define an alias that ensures that this tool is run in the current shell.
-    Place an alias like this in \$HOME/.bashrc or \$HOME/.bash_aliases:
+    Place an alias like this in $HOME/.bashrc or $HOME/.bash_aliases:
       alias tp='source tp'
   Automatic:
     Run the install script. This does the steps described in Setup/Manual automatically for you.
@@ -131,6 +137,7 @@ AUTHOR
 
 beginswith(){ case $2 in "$1"*) true;; *) false;; esac; }
 
+# Lists all portals defined in \$1
 list_portal_file(){
 	declare -a paths
 	declare -a portals
@@ -162,6 +169,7 @@ list_portal_file(){
 		fi
 	done
 }
+
 # Lists all available portals
 list_portals(){
 	echo -e "Custom portals:"
@@ -183,6 +191,19 @@ test_portal(){
 	fi
 }
 
+# Adds a portal to $file_ unless another portal with the same name already exists
+add_portal(){
+	t=$(config_get ${1})
+	if [ "${t}" == "__UNDEFINED__" ]; then
+		echo "${1}=${2}" >> $file_
+		echo -e "${1} \e[32m-->\e[0m ${2}"
+	else
+		echo -e "${1} \e[31m--!\e[0m ${2}"
+		echo -e "${1} \e[32m-->\e[0m ${t}"
+	fi
+}
+
+# Parsing all arguments
 while [ $# -ge 1 ]; do
         case "$1" in
                 --)
@@ -200,11 +221,20 @@ while [ $# -ge 1 ]; do
 			test_portal $2
 			shift 
 			;;
+		-a|--add)
+			portal_name=$2
+			shift
+			shift
+			portal_path=$2
+			add_portal $portal_name $portal_path
+			shift
+			;;
         esac
 
         shift
 done
 
+# The "core" function
 if [ ${#*} != 0 ]; then
 	dir=$(config_get $*)
 	if [ "${dir}" != "__UNDEFINED__" ]; then
