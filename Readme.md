@@ -11,8 +11,8 @@ Consequently, you will start entering dots into your command line:
 $ cd ../../../../rab/oof/1/kao/halb
 ```
 Since you are using both `blah` and `halb` very regularly, you often find yourself
-entering such commands. You maybe start wondering, isn't there a nice alternative
-to such mind numbing procedure? Wonder no more! `tp` is here to safe you.
+entering such commands. You maybe start wondering: isn't there a nice alternative
+to such mind numbing procedure? Wonder no more! `tp` is here to save you.
 
 With `tp`, switching from `~/Documents/foo/bar/1/oak/blah` to
 `~/Documents/oof/rab/1/kao/halb` is done in a 7 char command:
