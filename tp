@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 
 # TELEPORT
-# Author: Ruhe - ruhe@riseup.net - gitlab.com/bitteruhe
+# Author: Ruhe - ruhe@riseup.net - github.com/bitteruhe
 # This tool teleports to any defined portal
 #
 # Config methodology was found here: https://unix.stackexchange.com/questions/175648/use-config-file-for-my-shell-script#331965 - Author: gw0
