@@ -1,0 +1,223 @@
+#!/usr/bin/bash
+
+# TELEPORT
+# Author: Ruhe - ruhe@riseup.net - gitlab.com/bitteruhe
+# This tool teleports to any defined portal
+#
+# Config methodology was found here: https://unix.stackexchange.com/questions/175648/use-config-file-for-my-shell-script#331965 - Author: gw0
+# 
+# Installation:
+# Copy this script to /usr/bin/
+# And alias it under ~/.bashrc or ~/.bash_aliases like so:
+# alias tp='source tp'
+#
+# This is important because the cd command is executed in the current shell, not in a subshell
+# Setup portals under $HOME/.tp_config
+#
+# This application does not return exit codes because otherwise it would exit the current shell session. This is because it is designed to be run as source
+#
+# Whether this application was run successfully or not is determined by the arrow output:
+#
+# Arrow  : Meaning
+# ------ : ---------------------------------------------------------------------------------------
+# --> $1 : The application successfully teleported to $1
+# -/> $1 : The portal $1 was neither specified in $HOME/.tp_config nor in $HOME/.tp_config.defaults
+# -x> $1 : The underlying command (cd) returned a non-zero exit code
+
+# Setup required files
+file_="$HOME/.tp_config"
+default_="$HOME/.tp_config.defaults"
+if [ ! -e "$file_" ] ; then
+    touch "$file_"
+fi
+if [ ! -e "$default_" ] ; then
+    touch "$default_"
+    echo "#Grammar: [portal]=[path]
+r=/
+root=/root
+home=HOME/
+documents=HOME/Documents
+downloads=HOME/Downloads
+desktop=HOME/Desktop
+pictures=HOME/Pictures" > $default_
+fi
+
+
+args=$(getopt -l "list,test:,help" -o "lht:" -- "$@")
+
+eval set -- "$args"
+
+# Read the value $2 specified in file $1
+config_read_file() {
+    (grep -E "^${2}=" -m 1 "${1}" 2>/dev/null || echo "VAR=__UNDEFINED__") | head -n 1 | cut -d '=' -f 2-;
+}
+
+# Read the value $1 in the files $file_ and optionally $default_
+config_get() {
+    val="$(config_read_file $file_ "${1}")";
+    if [ "${val}" = "__UNDEFINED__" ]; then
+        val="$(config_read_file $default_ "${1}")";
+    fi
+    printf -- "%s" "${val}";
+}
+
+# Display help for this tool
+show_help(){
+	echo -e "
+			
+\e[35m              __,aaPPPPPPPPaa,__
+          ,adP\"\"\"\'          \`\"\"Yb,_
+       ,adP'                     \`\"Yb,
+     ,dP'     ,aadPP\"\"\"\"\"YYba,_     \`\"Y,
+    ,P'    ,aP\"'            \`\"\"Ya,     \"Y,
+   ,P'    aP'     _________     \`\"Ya    \`Yb,
+  ,P'    d\"    ,adP\"\"\"\"\"\"\"\"Yba,    \`Y,    \"Y,
+ ,d'   ,d'   ,dP\"            \`Yb,   \`Y,    \`Y,
+ d'   ,d'   ,d'    ,dP\"\"Yb,    \`Y,   \`Y,    \`b
+ 8    d'    d'   ,d\"      \"b,   \`Y,   \`8,    Y,
+ 8    8     8    d'    _   \`Y,   \`8    \`8    \`b
+ 8    8     8    8     8    \`8    8     8     8
+ 8    Y,    Y,   \`b, ,aP     P    8    ,P     8
+ I,   \`Y,   \`Ya    \"\"\"\"     d'   ,P    d\"    ,P
+ \`Y,   \`8,    \`Ya         ,8\"   ,P'   ,P'    d'
+  \`Y,   \`Ya,    \`Ya,,__,,d\"'   ,P'   ,P\"    ,P
+   \`Y,    \`Ya,     \`\"\"\"\"'     ,P'   ,d\"    ,P'
+    \`Yb,    \`\"Ya,_          ,d\"    ,P'    ,P'
+      \`Yb,      \"\"YbaaaaaadP\"     ,P'    ,P'   (Normand
+       \`Yba,                    ,d'    ,dP'    Veilleux)
+           \`\"Yba,__       __,adP\"     dP\"
+               \`\"\"\"\"\"\"\"\"\"\"\"\"\"'
+\e[0m
+
+This is Teleport - a tool for teleporting to any desired location.
+To teleport, choose a previously setup portal.
+
+SYNOPSIS
+  tp [OPTIONS] [PORTAL]
+
+OPTIONS
+  -h, --help              prints this help
+  -l, --list              lists all available portals (default and custom, 
+                          specified in \$HOME/.tp_config and \$HOME/.tp_config.defaults)
+  -t, --test TEST         displays, whether a portal called TEST is specified
+
+PORTAL
+  Specify one of the available portals to change the directory to the corresponding location.
+  Available portals are displayed with tp -l
+  Before teleporting, it is also possible to check the existance of a portal with tp -t PORTAL.
+  Portals are specified in \$HOME/.tp_config and \$HOME/.tp_config.defaults.
+
+ARROW OUTPUT
+  When teleporting, a colored arrow indicates if going through the portal was successful or not:
+  \e[32m-->\e[0m : The teleport was successful
+  \e[33m-/>\e[0m : An error occurred while trying to teleport
+  \e[31m--x\e[0m : The portal is not specified
+
+SETUP
+  Manual:  
+    Move this script to /usr/bin/ or /bin/.
+    Of course, it makes no sense to run this helper program in a subshell.
+    Therefore it is recommended to define an alias that ensures that this tool is run in the current shell.
+    Place an alias like this in \$HOME/.bashrc or \$HOME/.bash_aliases:
+      alias tp='source tp'
+  Automatic:
+    Run the install script. This does the steps described in Setup/Manual automatically for you.
+
+AUTHOR
+  Ruhe <ruhe@riseup.net>
+  Ruhe's GitHub: https://github.com/bitteruhe
+"
+}
+
+beginswith(){ case $2 in "$1"*) true;; *) false;; esac; }
+
+list_portal_file(){
+	declare -a paths
+	declare -a portals
+	# Load file into array.
+	let max_portal_length=0
+	let j=0
+	while IFS=$'\n' read -r line_data; do
+		portals[j]="$(echo ${line_data} | cut -d '=' -f 1)"
+		if ! beginswith \# "${portals[j]}"; then
+			if [ $max_portal_length -lt ${#portals[j]} ]; then
+				max_portal_length=${#portals[j]}
+			fi
+		fi
+	    ((++j))
+	done < ${1}
+	let i=0
+	while IFS=$'\n' read -r line_data; do
+		if [ "${#line_data}" != "0" ]; then
+			paths[i]="$(echo ${line_data} | cut -d '=' -f 2-)"
+		fi
+	    ((++i))
+	done < ${1}
+
+	for i in "${!paths[@]}"; do
+		if ! beginswith \# "${portals[i]}"; then
+			let num_of_whitespace=$((max_portal_length-${#portals[i]}))
+			whitespace=$(printf '%*s' "$num_of_whitespace")
+			echo -e "\e[34m${portals[i]}${whitespace} \e[32m-->\e[34m ${paths[i]}\e[0m"
+		fi
+	done
+}
+# Lists all available portals
+list_portals(){
+	echo -e "Custom portals:"
+	list_portal_file $file_
+	echo -e "Default portals:"
+	list_portal_file $default_
+}
+
+# Test if the portal exists
+test_portal(){
+	t=$(config_get ${1})
+	if [ "${t}" != "__UNDEFINED__" ]; then
+		if beginswith HOME "${t}"; then
+			t="$HOME${t##HOME}"
+		fi
+		echo -e "${1} \e[32m-->\e[0m ${t} "
+	else
+		echo -e "${1} \e[31m--x\e[0m"
+	fi
+}
+
+while [ $# -ge 1 ]; do
+        case "$1" in
+                --)
+                    # No more options left.
+                    shift
+                    break
+                   ;;
+                -l|--list)
+			list_portals
+                        ;;
+                -h|--help)
+			show_help
+                        ;;
+		-t|--test)
+			test_portal $2
+			shift 
+			;;
+        esac
+
+        shift
+done
+
+if [ ${#*} != 0 ]; then
+	dir=$(config_get $*)
+	if [ "${dir}" != "__UNDEFINED__" ]; then
+		if beginswith HOME "${dir}"; then
+			dir="$HOME${dir##HOME}"
+		fi
+		cd $dir &> /dev/null
+		if [ "$?" != "0" ]; then
+			echo -e "$1 \e[33m-/>\e[0m $dir"
+		else
+			echo -e "$1 \e[32m-->\e[0m $dir"
+		fi
+	else
+		echo -e "$1 \e[31m--x\e[0m"
+	fi
+fi
