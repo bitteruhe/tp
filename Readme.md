@@ -1,5 +1,5 @@
 # TP
-Teleport - A bash tool for transitioning from one directory ot another.  
+Teleport - A bash tool for transitioning from one directory to another.  
 ## What it is
 `tp` is just a wrapper for `cd`. It makes use of so called `portals` that point
 to user defined directories.
