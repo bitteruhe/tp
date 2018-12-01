@@ -8,7 +8,7 @@ Let's say your current working directory is `~/Documents/foo/bar/1/oak/blah`
 and you quickly want to change your directory to `~/Documents/oof/rab/1/kao/halb`.
 Consequently, you will start entering dots into your command line:
 ```bash
-$ cd ../../../../rab/oof/1/kao/halb
+$ cd ../../../../oof/rab/1/kao/halb
 ```
 Since you are using both `blah` and `halb` very regularly, you often find yourself
 entering such commands. You maybe start wondering: isn't there a nice alternative
