@@ -7,14 +7,8 @@
 # Config methodology was found here: https://unix.stackexchange.com/questions/175648/use-config-file-for-my-shell-script#331965 - Author: gw0
 # 
 # Installation:
-# Copy this script to /usr/bin/
-# And alias it under ~/.bashrc or ~/.bash_aliases like so:
-# alias tp='source tp'
-#
-# This is important because the cd command is executed in the current shell, not in a subshell
-#
-# This application does not return exit codes because otherwise it would exit the current shell session.
-# This is because it is designed to be run as source
+# Source tp under ~/.bashrc like so:
+# source $PWD/tp
 #
 # Whether this application was run successfully or not is determined by the arrow output:
 #
@@ -25,6 +19,8 @@
 # -x> $1 : The underlying command (cd) returned a non-zero exit code
 
 # Setup required files
+
+tp(){
 file_="$HOME/.tp_config"
 default_="$HOME/.tp_config.defaults"
 if [ ! -e "$file_" ] ; then
@@ -120,12 +116,12 @@ ARROW OUTPUT
   \e[31m--!\e[0m : The portal is already configured
 
 SETUP
-  Manual:  
-    Move this script to /usr/bin/ or /bin/.
-    Of course, it makes no sense to run this helper program in a subshell.
-    Therefore it is recommended to define an alias that ensures that this tool is run in the current shell.
-    Place an alias like this in $HOME/.bashrc or $HOME/.bash_aliases:
-      alias tp='source tp'
+  Manual: 
+    Let \$path be the path you store tp at.
+    Add the following line to $HOME/.bashrc:
+      source \$path/tp
+    Then, source the .bashrc script:
+      source $HOME/.bashrc
   Automatic:
     Run the install script. This does the steps described in Setup/Manual automatically for you.
 
@@ -251,3 +247,4 @@ if [ ${#*} != 0 ]; then
 		echo -e "$1 \e[31m--x\e[0m"
 	fi
 fi
+}

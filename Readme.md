@@ -79,19 +79,12 @@ clargs --> HOME/Documents/code/java/clargs/src/main/java/org/ruhe
 Clone this repo and run the install script:
 ```bash
 $ git clone https://github.com/bitteruhe/tp && cd tp
-$ sudo ./install.sh
+$ ./install.sh
 ```
 If you don't want to run the install script, follow these steps:
-1. Copy tp to your bin folder: `cp tp /usr/bin/tp`
-2. Set an alias for tp: `echo "alias tp='source tp'" >> $HOME/.bash_aliases`
-3. Apply the changes: `source $HOME/.bash_aliases`
-4. If not done yet, link `~/.bash_aliases` to `~/.bashrc` by pasting the following
-bash code into `~/.bashrc`:
-```bash
-if [ -f ~/.bash_aliases ]; then
-        . ~/.bash_aliases
-fi
-```
+1. Let `$path` be the path you store `tp` at
+2. Add the following line to `$HOME/bashrc`: `source $path/tp`
+3. Apply the changes: `source $HOME/.bashrc`
 
 After running `tp` for the first time, the two files `~/.tp_config` and `~/.tp_config.defaults` are created. Add your own portals to `~/.tp_config` with `tp -a` or
 use the existing portals in `~/.tp_config.defaults`.
