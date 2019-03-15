@@ -1,3 +1,7 @@
+----
+__THIS REPOSITORY IS DEPRECATED__  
+__HEAD TO [abzicht/tp](/abzicht/tp) for the latest commits__
+----
 # TP
 Teleport - A bash tool for transitioning from one directory to another.  
 ```text
